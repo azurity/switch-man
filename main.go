@@ -95,18 +95,9 @@ func save(list []*Dispatcher) error {
 	return os.WriteFile("config.json", data, 0666)
 }
 
-func hostFormat(URL *url.URL) string {
-	hostname := URL.Hostname()
-	port := URL.Port()
-	if port == "" {
-		port = "80"
-	}
-	return fmt.Sprintf("%s:%s", hostname, port)
-}
-
 func main() {
-	port := flag.Int("main port", 80, "entry serve port")
-	manPort := flag.Int("manage port", 8080, "manager serve port")
+	port := flag.Int("mainPort", 80, "entry serve port")
+	manPort := flag.Int("managePort", 8080, "manager serve port")
 	flag.Parse()
 
 	if *port == *manPort || *port <= 0 || *port > 32767 || *manPort <= 0 || *manPort > 32767 {
@@ -122,7 +113,7 @@ func main() {
 	main.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		mtx.RLock()
 		for _, it := range dispatchers {
-			if r.Host == hostFormat(it.FromBaseURL) {
+			if r.Host == it.FromBaseURL.Hostname() {
 				basePath := it.FromBaseURL.Path
 				basePath = basePath[:len(basePath)-1]
 				if basePath == r.URL.Path[:len(basePath)] {
